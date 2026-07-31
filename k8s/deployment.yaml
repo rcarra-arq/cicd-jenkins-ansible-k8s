@@ -1,0 +1,25 @@
+# Um Deployment: o objeto que diz "mantenha N copias desta app sempre de pe".
+# Ele nao cria pods diretamente -- cria um ReplicaSet, e o ReplicaSet mantem
+# os pods. Se um pod morre, o ReplicaSet sobe outro (o loop de reconciliacao).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 2                 # quero 2 copias rodando o tempo todo
+  selector:
+    matchLabels:
+      app: web                # "os pods que EU gerencio sao os rotulados app=web"
+  template:                   # o molde de cada pod que este Deployment cria
+    metadata:
+      labels:
+        app: web              # o rotulo colado em cada pod (tem que casar com o selector acima)
+    spec:
+      containers:
+        - name: nginx
+          image: web-app:v2          # NOSSA imagem, buildada e carregada no kind
+          imagePullPolicy: IfNotPresent  # use a imagem LOCAL; nao tente baixar de um registry
+          ports:
+            - containerPort: 80       # a porta que o nginx escuta DENTRO do pod

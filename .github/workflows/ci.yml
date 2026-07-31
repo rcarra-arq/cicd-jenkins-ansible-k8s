@@ -1,0 +1,44 @@
+name: CI
+
+# CI leve: roda a cada push/PR. Papel de "porteiro" do repo -- valida rapido.
+# O deploy pesado no Kubernetes fica com o Jenkins (ver README).
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the app image
+        run: docker build -t web-app:ci .
+
+      # Um "docker run" sozinho sempre passa, mesmo com a app quebrada.
+      # Entao a gente REALMENTE bate na pagina e exige HTTP 200 -- este passo
+      # teria pego o bug de permissao 403 que enfrentamos no Kubernetes.
+      - name: Smoke test (container answers HTTP 200)
+        run: |
+          docker run -d -p 8080:80 --name smoke web-app:ci
+          sleep 3
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+          echo "HTTP status: $code"
+          docker rm -f smoke
+          test "$code" = "200"
+
+  validate-manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Valida os manifests do K8s contra os schemas oficiais da API.
+      # (Nao inclui kind-config.yaml: e um objeto do kind, nao um recurso do
+      # Kubernetes, entao nao tem schema pra validar aqui.)
+      - name: Validate Kubernetes manifests (kubeconform)
+        run: |
+          curl -sL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          ./kubeconform -strict -summary k8s/deployment.yaml k8s/service.yaml

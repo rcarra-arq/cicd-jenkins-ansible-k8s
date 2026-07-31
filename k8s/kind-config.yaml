@@ -1,0 +1,18 @@
+# Definicao do cluster kind (Kubernetes in Docker).
+# kind le este arquivo e sobe um cluster Kubernetes rodando como containers Docker.
+#
+# Por que pinar a imagem com tag + digest sha256:
+#   - a tag (v1.36.1) diz QUAL versao do Kubernetes o no roda;
+#   - o @sha256:... garante que e EXATAMENTE a imagem publicada com o kind v0.32.0.
+#   Uma tag pode ser reescrita no registry; um digest sha256 e imutavel.
+#   A propria release do kind exige o digest para reprodutibilidade.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: cicd-lab
+nodes:
+  # Um unico no que acumula os papeis de control-plane (o "cerebro" do
+  # cluster: API server, scheduler, etcd) e de worker (onde os pods rodam).
+  # Em cluster de 1 no, o kind remove o taint que normalmente impede pods
+  # de rodarem no control-plane, entao a app roda aqui mesmo.
+  - role: control-plane
+    image: kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5

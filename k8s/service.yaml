@@ -1,0 +1,15 @@
+# Um Service: o "balcao fixo" na frente dos pods.
+# Da um IP virtual estavel (ClusterIP) + um nome DNS (web), e roteia o trafego
+# para qualquer pod vivo que tenha o rotulo app=web. O IP dos pods muda; o
+# endereco do Service, nao.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  type: ClusterIP          # so acessivel DE DENTRO do cluster (o padrao)
+  selector:
+    app: web               # acha os pods por este rotulo -- os mesmos do Deployment
+  ports:
+    - port: 80             # a porta do Service (o endereco fixo)
+      targetPort: 80       # a porta no pod (o containerPort do nginx)

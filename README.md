@@ -93,6 +93,8 @@ kubectl port-forward service/web 8090:80
 
 Tear down the cluster with `kind delete cluster --name cicd-lab`.
 
+![App running on Kubernetes, version v2](./screenshots/app-v2-running.png)
+
 ## Troubleshooting write-ups
 
 Real problems hit while building this, each ending in root cause and lesson —
@@ -149,6 +151,8 @@ kubectl port-forward service/web 8090:80              # → http://localhost:809
 ```
 
 Derruba tudo com `kind delete cluster --name cicd-lab`.
+
+![App rodando no Kubernetes, versão v2](./screenshots/app-v2-running.png)
 
 ## Casos de troubleshooting
 

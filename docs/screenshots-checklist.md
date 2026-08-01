@@ -9,8 +9,9 @@ print** (app, dashboard, pipeline). Capturar cada print no seu melhor momento.
       (Também vira bloco de código; print é bônus.)
 
 ## Esperar o momento certo (prints herói)
-- [ ] **App no navegador** — DEPOIS de trocar o nginx genérico pela imagem do
+- [x] **App no navegador** — DEPOIS de trocar o nginx genérico pela imagem do
       `cloud-monitoring-lab` (a página custom, não a "Welcome to nginx").
+      → `screenshots/app-v2-running.png`, já no README.
 - [ ] **Rolling update** — `kubectl rollout status` / `get pods` durante a troca
       de versão, mostrando pods novos entrando e velhos saindo sem downtime.
 - [ ] **Ansible** — a saída do `ansible-playbook` com o resumo `ok/changed`

@@ -14,8 +14,9 @@ print** (app, dashboard, pipeline). Capturar cada print no seu melhor momento.
       → `screenshots/app-v2-running.png`, já no README.
 - [ ] **Rolling update** — `kubectl rollout status` / `get pods` durante a troca
       de versão, mostrando pods novos entrando e velhos saindo sem downtime.
-- [ ] **Ansible** — a saída do `ansible-playbook` com o resumo `ok/changed`
-      (idempotência: rodar 2x, a 2a toda verde `ok`, nada `changed`).
+- [x] **Ansible** — a saída do `ansible-playbook` com o resumo `ok/changed`
+      (idempotência: `changed=4` → `changed=2` com `changed_when`).
+      → `screenshots/ansible-idempotency.png`, já no README.
 - [ ] **Jenkins** — o **Stage View** do pipeline (o gráfico de blocos verdes:
       build → playbook → deploy). Esse é o print mais vendedor do projeto.
 - [ ] **Grafana (bônus)** — dashboard monitorando o cluster K8s.

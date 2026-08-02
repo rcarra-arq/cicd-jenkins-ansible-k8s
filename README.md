@@ -30,7 +30,7 @@ This is a lab built in stages. Honest status:
 |---|---|---|
 | 1 | **Kubernetes** — kind cluster, Deployment, Service, self-healing | ✅ done |
 | 2 | **App on the cluster** — custom image, `kind load`, rolling update | ✅ done |
-| 3 | **Ansible** — playbook that builds, loads and applies the manifests | 🔜 next |
+| 3 | **Ansible** — playbook that builds, loads and applies the manifests | ✅ done |
 | 4 | **Jenkins** — pipeline: build → playbook → deploy | 🔜 planned |
 | 5 | **Monitoring (bonus)** — Prometheus + Grafana watching the cluster | 🔜 planned |
 
@@ -95,6 +95,25 @@ Tear down the cluster with `kind delete cluster --name cicd-lab`.
 
 ![App running on Kubernetes, version v2](./screenshots/app-v2-running.png)
 
+## Ansible — automating the deploy
+
+The four manual steps above (build → `kind load` → `kubectl apply` → rollout) are
+automated by a playbook ([ansible/deploy.yml](ansible/deploy.yml)) — one command
+replaces four:
+
+```bash
+cd ansible && ansible-playbook deploy.yml
+```
+
+The playbook also shows **idempotency** in action. With the plain `command`
+module every task reports `changed` (it runs blindly). Using `changed_when`, the
+**declarative** steps tell the truth: `kubectl apply` reports `changed` only when
+the cluster actually changes, and the rollout check never counts as a change. In
+the two runs below, the recap drops from `changed=4` to `changed=2`, and the
+apply and rollout tasks flip from `changed` to `ok`:
+
+![Ansible playbook: changed=4 → changed=2 after adding changed_when](./screenshots/ansible-idempotency.png)
+
 ## Troubleshooting write-ups
 
 Real problems hit while building this, each ending in root cause and lesson —
@@ -128,7 +147,7 @@ Prometheus/Grafana do
 |---|---|---|
 | 1 | **Kubernetes** — cluster kind, Deployment, Service, self-healing | ✅ feito |
 | 2 | **App no cluster** — imagem própria, `kind load`, rolling update | ✅ feito |
-| 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | 🔜 próximo |
+| 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | ✅ feito |
 | 4 | **Jenkins** — pipeline: build → playbook → deploy | 🔜 planejado |
 | 5 | **Monitoramento (bônus)** — Prometheus + Grafana no cluster | 🔜 planejado |
 
@@ -153,6 +172,25 @@ kubectl port-forward service/web 8090:80              # → http://localhost:809
 Derruba tudo com `kind delete cluster --name cicd-lab`.
 
 ![App rodando no Kubernetes, versão v2](./screenshots/app-v2-running.png)
+
+## Ansible — automatizando o deploy
+
+Os quatro passos manuais (build → `kind load` → `kubectl apply` → rollout) são
+automatizados por um playbook ([ansible/deploy.yml](ansible/deploy.yml)) — um
+comando substitui quatro:
+
+```bash
+cd ansible && ansible-playbook deploy.yml
+```
+
+O playbook também mostra **idempotência** na prática. Com o módulo `command` puro,
+toda task reporta `changed` (roda cega). Com `changed_when`, os passos
+**declarativos** falam a verdade: o `kubectl apply` só reporta `changed` quando o
+cluster realmente muda, e a checagem de rollout nunca conta como mudança. Nas
+duas rodadas abaixo, o recap cai de `changed=4` para `changed=2`, e as tasks de
+apply e rollout viram de `changed` para `ok`:
+
+![Playbook Ansible: changed=4 → changed=2 depois do changed_when](./screenshots/ansible-idempotency.png)
 
 ## Casos de troubleshooting
 

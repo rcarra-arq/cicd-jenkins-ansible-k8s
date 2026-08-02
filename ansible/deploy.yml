@@ -1,0 +1,38 @@
+---
+# Playbook: automatiza o deploy que antes era feito na mao.
+# Um "play" (este bloco) roda uma lista de "tasks" (passos) nas maquinas do grupo.
+- name: Build e deploy da app no cluster kind local
+  hosts: local            # o grupo do inventory (a propria VM)
+  gather_facts: false     # nao precisamos coletar infos da maquina -> mais rapido
+
+  vars:
+    image: web-app:v2     # a tag da imagem (tem que casar com o k8s/deployment.yaml)
+    cluster: cicd-lab     # o nome do cluster kind
+    repo_dir: "{{ playbook_dir }}/.."   # a raiz do repo (playbook_dir e a pasta ansible/)
+
+  tasks:
+    # Passos IMPERATIVOS (build/load): refazem trabalho toda vez, entao reportam
+    # "changed" honestamente -- de fato rodaram.
+    - name: Buildar a imagem Docker
+      ansible.builtin.command:
+        cmd: docker build -t {{ image }} .
+        chdir: "{{ repo_dir }}"
+
+    - name: Carregar a imagem no cluster kind
+      ansible.builtin.command:
+        cmd: kind load docker-image {{ image }} --name {{ cluster }}
+
+    # Passo DECLARATIVO (apply): idempotente. Lemos a saida do kubectl e so
+    # reportamos "changed" quando ele realmente mexeu (created/configured).
+    - name: Aplicar os manifests do Kubernetes
+      ansible.builtin.command:
+        cmd: kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
+        chdir: "{{ repo_dir }}"
+      register: apply_result   # guarda a saida do comando numa variavel
+      changed_when: "'configured' in apply_result.stdout or 'created' in apply_result.stdout"
+
+    # Checagem: espera o rollout, mas NAO muda nada -> nunca conta como "changed".
+    - name: Esperar o rollout terminar
+      ansible.builtin.command:
+        cmd: kubectl rollout status deployment/web --timeout=90s
+      changed_when: false

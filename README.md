@@ -170,7 +170,7 @@ Prometheus/Grafana do
 | 2 | **App no cluster** — imagem própria, `kind load`, rolling update | ✅ feito |
 | 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | ✅ feito |
 | 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ feito |
-| 5 | **Monitoramento (bônus)** — Prometheus + Grafana no cluster | 🔜 planejado |
+| 5 | **Monitoramento** — Prometheus + Grafana no cluster | 🔜 planejado |
 
 GitHub Actions e Jenkins são **complementares**: o Actions é o portão leve que
 roda a cada push (builda? responde 200? os manifests são válidos?); o Jenkins

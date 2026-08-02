@@ -20,7 +20,8 @@ print** (app, dashboard, pipeline). Capturar cada print no seu melhor momento.
 - [x] **Jenkins** — o **Stage View** do pipeline (o gráfico de blocos verdes:
       Checkout → Build → Load → Deploy). Esse é o print mais vendedor do projeto.
       → `screenshots/jenkins-pipeline-green.png`, já no README.
-- [ ] **Grafana (bônus)** — dashboard monitorando o cluster K8s.
+- [x] **Grafana** — dashboard Prometheus + Grafana rodando dentro do cluster K8s.
+      → `screenshots/grafana-k8s-dashboard.png`, já no README.
 
 ## Como levar o print pro repo
 Print é tirado no **Windows** (a janela do navegador ou do terminal PuTTY).

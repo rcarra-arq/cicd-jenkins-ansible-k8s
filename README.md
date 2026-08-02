@@ -3,6 +3,8 @@
 ![Docker](https://img.shields.io/badge/Docker-Container-2496ED)
 ![Ansible](https://img.shields.io/badge/Ansible-Playbook-EE0000)
 ![Jenkins](https://img.shields.io/badge/Jenkins-Pipeline-D24939)
+![Prometheus](https://img.shields.io/badge/Prometheus-Monitoring-E6522C)
+![Grafana](https://img.shields.io/badge/Grafana-Dashboard-F46800)
 
 # CI/CD Pipeline with Jenkins, Ansible & Kubernetes
 
@@ -32,7 +34,7 @@ This is a lab built in stages. Honest status:
 | 2 | **App on the cluster** — custom image, `kind load`, rolling update | ✅ done |
 | 3 | **Ansible** — playbook that builds, loads and applies the manifests | ✅ done |
 | 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ done |
-| 5 | **Monitoring** — Prometheus + Grafana watching the cluster | 🔜 planned |
+| 5 | **Monitoring** — Prometheus + Grafana running inside the cluster | ✅ done |
 
 ## Target architecture
 
@@ -47,8 +49,10 @@ Developer ──push──▶ GitHub ──▶ GitHub Actions      (fast CI gate
                     └─ run Ansible playbook → deploy to Kubernetes
 
 kind cluster (Kubernetes in Docker)
-   └── Deployment "web" (2 replicas) ──▶ Service "web" (stable ClusterIP + DNS)
-                                             └── nginx pods serving the app
+   ├── Deployment "web" (2 replicas) ──▶ Service "web" (stable ClusterIP + DNS)
+   │                                         └── nginx pods serving the app
+   ├── Prometheus (scrapes metrics from the cluster)
+   └── Grafana (dashboards visualizing Prometheus data)
 ```
 
 GitHub Actions and Jenkins are **complementary**: Actions is the lightweight gate
@@ -66,6 +70,8 @@ deploys to Kubernetes.
 | Docker | Builds the app image (nginx + custom page) |
 | Ansible | Provisions and applies the manifests declaratively |
 | Jenkins | Self-hosted CI/CD pipeline — Docker-outside-of-Docker pattern |
+| Prometheus | Metrics collection — runs inside the cluster as a pod |
+| Grafana | Dashboard visualization — reads from Prometheus |
 | GitHub Actions | Fast CI: build, smoke test, manifest validation |
 
 ## Quick start (what works today)
@@ -135,6 +141,20 @@ Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
 
 ![Jenkins pipeline — all stages green](./screenshots/jenkins-pipeline-green.png)
 
+## Monitoring — Prometheus + Grafana on the cluster
+
+Prometheus and Grafana run as pods **inside the kind cluster**, not as standalone
+Docker containers. Prometheus scrapes its own metrics and the web app's endpoint;
+Grafana connects to Prometheus as a data source and renders the dashboard.
+
+```bash
+kubectl apply -f k8s/prometheus-config.yaml -f k8s/prometheus.yaml -f k8s/grafana.yaml
+kubectl port-forward --address 0.0.0.0 service/grafana 3000:3000
+#    → open http://localhost:3000 (admin / admin)
+```
+
+![Grafana dashboard on Kubernetes](./screenshots/grafana-k8s-dashboard.png)
+
 ## Troubleshooting write-ups
 
 Real problems hit while building this, each ending in root cause and lesson —
@@ -170,7 +190,7 @@ Prometheus/Grafana do
 | 2 | **App no cluster** — imagem própria, `kind load`, rolling update | ✅ feito |
 | 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | ✅ feito |
 | 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ feito |
-| 5 | **Monitoramento** — Prometheus + Grafana no cluster | 🔜 planejado |
+| 5 | **Monitoramento** — Prometheus + Grafana rodando dentro do cluster | ✅ feito |
 
 GitHub Actions e Jenkins são **complementares**: o Actions é o portão leve que
 roda a cada push (builda? responde 200? os manifests são válidos?); o Jenkins
@@ -234,6 +254,20 @@ Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
    o rollout)
 
 ![Pipeline Jenkins — todos os estágios verdes](./screenshots/jenkins-pipeline-green.png)
+
+## Monitoramento — Prometheus + Grafana no cluster
+
+Prometheus e Grafana rodam como pods **dentro do cluster kind**, não como
+containers Docker avulsos. O Prometheus coleta métricas dele mesmo e do endpoint
+da app; o Grafana conecta no Prometheus como data source e renderiza o dashboard.
+
+```bash
+kubectl apply -f k8s/prometheus-config.yaml -f k8s/prometheus.yaml -f k8s/grafana.yaml
+kubectl port-forward --address 0.0.0.0 service/grafana 3000:3000
+#    → abrir http://localhost:3000 (admin / admin)
+```
+
+![Dashboard Grafana no Kubernetes](./screenshots/grafana-k8s-dashboard.png)
 
 ## Casos de troubleshooting
 

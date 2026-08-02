@@ -32,7 +32,7 @@ This is a lab built in stages. Honest status:
 | 2 | **App on the cluster** — custom image, `kind load`, rolling update | ✅ done |
 | 3 | **Ansible** — playbook that builds, loads and applies the manifests | ✅ done |
 | 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ done |
-| 5 | **Monitoring (bonus)** — Prometheus + Grafana watching the cluster | 🔜 planned |
+| 5 | **Monitoring** — Prometheus + Grafana watching the cluster | 🔜 planned |
 
 ## Target architecture
 

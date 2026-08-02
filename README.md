@@ -1,8 +1,8 @@
 ![CI](https://github.com/rcarra-arq/cicd-jenkins-ansible-k8s/actions/workflows/ci.yml/badge.svg)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-kind-326CE5)
 ![Docker](https://img.shields.io/badge/Docker-Container-2496ED)
-![Ansible](https://img.shields.io/badge/Ansible-roadmap-EE0000)
-![Jenkins](https://img.shields.io/badge/Jenkins-roadmap-D24939)
+![Ansible](https://img.shields.io/badge/Ansible-Playbook-EE0000)
+![Jenkins](https://img.shields.io/badge/Jenkins-Pipeline-D24939)
 
 # CI/CD Pipeline with Jenkins, Ansible & Kubernetes
 
@@ -31,7 +31,7 @@ This is a lab built in stages. Honest status:
 | 1 | **Kubernetes** — kind cluster, Deployment, Service, self-healing | ✅ done |
 | 2 | **App on the cluster** — custom image, `kind load`, rolling update | ✅ done |
 | 3 | **Ansible** — playbook that builds, loads and applies the manifests | ✅ done |
-| 4 | **Jenkins** — pipeline: build → playbook → deploy | 🔜 planned |
+| 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ done |
 | 5 | **Monitoring (bonus)** — Prometheus + Grafana watching the cluster | 🔜 planned |
 
 ## Target architecture
@@ -41,10 +41,10 @@ Developer ──push──▶ GitHub ──▶ GitHub Actions      (fast CI gate
                                ├─ build image + smoke test (HTTP 200)
                                └─ validate Kubernetes manifests
 
-                    Jenkins (container)             (full CD pipeline — planned)
+                    Jenkins (container)             (full CD pipeline)
                     ├─ build the Docker image
-                    ├─ run the Ansible playbook
-                    └─ deploy to Kubernetes (kind)
+                    ├─ load image into kind cluster
+                    └─ run Ansible playbook → deploy to Kubernetes
 
 kind cluster (Kubernetes in Docker)
    └── Deployment "web" (2 replicas) ──▶ Service "web" (stable ClusterIP + DNS)
@@ -64,8 +64,8 @@ deploys to Kubernetes.
 | Deployment + ReplicaSet | Keeps N identical pods alive; self-heals and does rolling updates |
 | Service (ClusterIP) | Stable virtual IP + DNS name in front of the ephemeral pods |
 | Docker | Builds the app image (nginx + custom page) |
-| Ansible *(roadmap)* | Provisions and applies the manifests declaratively |
-| Jenkins *(roadmap)* | Self-hosted CI/CD pipeline that replaces manual deploys |
+| Ansible | Provisions and applies the manifests declaratively |
+| Jenkins | Self-hosted CI/CD pipeline — Docker-outside-of-Docker pattern |
 | GitHub Actions | Fast CI: build, smoke test, manifest validation |
 
 ## Quick start (what works today)
@@ -114,6 +114,27 @@ apply and rollout tasks flip from `changed` to `ok`:
 
 ![Ansible playbook: changed=4 → changed=2 after adding changed_when](./screenshots/ansible-idempotency.png)
 
+## Jenkins — the CI/CD pipeline
+
+Jenkins runs as a container on the same VM, using the **Docker-outside-of-Docker**
+pattern: it mounts the host's Docker socket (`/var/run/docker.sock`) instead of
+running its own daemon. A custom image ([jenkins/Dockerfile](jenkins/Dockerfile))
+bakes in the tools the pipeline needs: Docker CLI, kubectl, kind, and Ansible.
+
+The pipeline has four stages:
+
+```
+Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
+```
+
+1. **Checkout** — clones the repo from GitHub
+2. **Build** — `docker build` of the app image
+3. **Load** — `kind load` to push the image into the cluster
+4. **Deploy** — runs `ansible-playbook deploy.yml` (which applies the manifests
+   and waits for the rollout)
+
+![Jenkins pipeline — all stages green](./screenshots/jenkins-pipeline-green.png)
+
 ## Troubleshooting write-ups
 
 Real problems hit while building this, each ending in root cause and lesson —
@@ -148,7 +169,7 @@ Prometheus/Grafana do
 | 1 | **Kubernetes** — cluster kind, Deployment, Service, self-healing | ✅ feito |
 | 2 | **App no cluster** — imagem própria, `kind load`, rolling update | ✅ feito |
 | 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | ✅ feito |
-| 4 | **Jenkins** — pipeline: build → playbook → deploy | 🔜 planejado |
+| 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ feito |
 | 5 | **Monitoramento (bônus)** — Prometheus + Grafana no cluster | 🔜 planejado |
 
 GitHub Actions e Jenkins são **complementares**: o Actions é o portão leve que
@@ -191,6 +212,28 @@ duas rodadas abaixo, o recap cai de `changed=4` para `changed=2`, e as tasks de
 apply e rollout viram de `changed` para `ok`:
 
 ![Playbook Ansible: changed=4 → changed=2 depois do changed_when](./screenshots/ansible-idempotency.png)
+
+## Jenkins — o pipeline CI/CD
+
+O Jenkins roda como container na mesma VM, usando o padrão
+**Docker-outside-of-Docker**: monta o socket do Docker do host
+(`/var/run/docker.sock`) em vez de rodar um daemon próprio. Uma imagem custom
+([jenkins/Dockerfile](jenkins/Dockerfile)) já vem com as ferramentas que o
+pipeline precisa: Docker CLI, kubectl, kind e Ansible.
+
+O pipeline tem quatro estágios:
+
+```
+Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
+```
+
+1. **Checkout** — clona o repo do GitHub
+2. **Build** — `docker build` da imagem da app
+3. **Load** — `kind load` pra colocar a imagem no cluster
+4. **Deploy** — roda `ansible-playbook deploy.yml` (aplica os manifests e espera
+   o rollout)
+
+![Pipeline Jenkins — todos os estágios verdes](./screenshots/jenkins-pipeline-green.png)
 
 ## Casos de troubleshooting
 

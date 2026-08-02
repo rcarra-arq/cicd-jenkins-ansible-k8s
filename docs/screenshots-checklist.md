@@ -17,8 +17,9 @@ print** (app, dashboard, pipeline). Capturar cada print no seu melhor momento.
 - [x] **Ansible** — a saída do `ansible-playbook` com o resumo `ok/changed`
       (idempotência: `changed=4` → `changed=2` com `changed_when`).
       → `screenshots/ansible-idempotency.png`, já no README.
-- [ ] **Jenkins** — o **Stage View** do pipeline (o gráfico de blocos verdes:
-      build → playbook → deploy). Esse é o print mais vendedor do projeto.
+- [x] **Jenkins** — o **Stage View** do pipeline (o gráfico de blocos verdes:
+      Checkout → Build → Load → Deploy). Esse é o print mais vendedor do projeto.
+      → `screenshots/jenkins-pipeline-green.png`, já no README.
 - [ ] **Grafana (bônus)** — dashboard monitorando o cluster K8s.
 
 ## Como levar o print pro repo

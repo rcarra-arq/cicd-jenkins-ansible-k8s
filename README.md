@@ -8,6 +8,8 @@
 
 # CI/CD Pipeline with Jenkins, Ansible & Kubernetes
 
+**🇺🇸 English** · [🇧🇷 Português](#português)
+
 A local, **zero-cloud-cost** CI/CD lab: a containerized web app deployed to a
 **Kubernetes** cluster (kind), provisioned by **Ansible**, and driven by a
 **Jenkins** pipeline — build the image, run the playbook, deploy to the cluster.
@@ -19,8 +21,6 @@ Prometheus/Grafana stack from
 > management (Ansible)**, **self-hosted CI/CD (Jenkins)** and **container
 > orchestration (Kubernetes)** — built hands-on, with **documented,
 > real-world troubleshooting write-ups**.
-
-*Versão em português abaixo.* 🇧🇷
 
 ---
 
@@ -168,7 +168,9 @@ see [docs/troubleshooting.md](docs/troubleshooting.md):
 ---
 ---
 
-# 🇧🇷 CI/CD com Jenkins, Ansible & Kubernetes
+## Português
+
+[🇺🇸 English ⬆](#cicd-pipeline-with-jenkins-ansible--kubernetes)
 
 Laboratório de CI/CD **com custo zero de nuvem**, rodando local numa VM Linux:
 uma aplicação containerizada é publicada num cluster **Kubernetes** (kind),

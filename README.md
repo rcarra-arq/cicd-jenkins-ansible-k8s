@@ -22,6 +22,14 @@ Prometheus/Grafana stack from
 > orchestration (Kubernetes)** — built hands-on, with **documented,
 > real-world troubleshooting write-ups**.
 
+## My reasons
+
+A junior job posting asked for Jenkins, Ansible, and Kubernetes, and I wanted to
+understand what they were and how they worked. I was surprised by how much a
+junior role can ask for — so I went and learned it hands-on. What I enjoyed most
+was understanding Kubernetes: killing a pod and watching another one be born to
+replace it, and seeing how that contributes to high availability.
+
 ---
 
 ## Status / roadmap
@@ -183,6 +191,14 @@ Prometheus/Grafana do
 > configuração (Ansible)**, **CI/CD self-hosted (Jenkins)** e **orquestração de
 > containers (Kubernetes)** — na prática, com **documentações de troubleshooting
 > reais**.
+
+## O porquê
+
+Uma vaga de júnior pedia Jenkins, Ansible e Kubernetes, e eu quis entender o que
+eram e como funcionavam. Fiquei surpresa com o quanto uma vaga júnior pode pedir
+— então fui aprender na prática. O que eu mais gostei foi entender o Kubernetes:
+derrubar um pod e ver outro nascer no lugar, e perceber como isso contribui pra
+alta disponibilidade.
 
 ## Status / roadmap
 

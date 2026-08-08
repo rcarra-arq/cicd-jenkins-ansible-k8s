@@ -119,12 +119,14 @@ replaces four:
 cd ansible && ansible-playbook deploy.yml
 ```
 
-The playbook also shows **idempotency** in action. With the plain `command`
-module every task reports `changed` (it runs blindly). Using `changed_when`, the
-**declarative** steps tell the truth: `kubectl apply` reports `changed` only when
-the cluster actually changes, and the rollout check never counts as a change. In
-the two runs below, the recap drops from `changed=4` to `changed=2`, and the
-apply and rollout tasks flip from `changed` to `ok`:
+I also learned **idempotency** here — a word I didn't know before this. It means
+running the same thing twice shouldn't change anything the second time, if
+nothing actually needs changing. At first every task reported `changed`, even
+when the cluster was already in the right state — because the plain `command`
+module just runs blindly and can't tell. After I added `changed_when`, the tasks
+started telling the truth: `kubectl apply` only says `changed` when it really
+changed something, and the rollout check never counts as a change. You can see it
+in the two runs below — the recap drops from `changed=4` to `changed=2`:
 
 ![Ansible playbook: changed=4 → changed=2 after adding changed_when](./screenshots/ansible-idempotency.png)
 
@@ -242,12 +244,14 @@ comando substitui quatro:
 cd ansible && ansible-playbook deploy.yml
 ```
 
-O playbook também mostra **idempotência** na prática. Com o módulo `command` puro,
-toda task reporta `changed` (roda cega). Com `changed_when`, os passos
-**declarativos** falam a verdade: o `kubectl apply` só reporta `changed` quando o
-cluster realmente muda, e a checagem de rollout nunca conta como mudança. Nas
-duas rodadas abaixo, o recap cai de `changed=4` para `changed=2`, e as tasks de
-apply e rollout viram de `changed` para `ok`:
+Também aprendi **idempotência** aqui — uma palavra que eu não conhecia antes
+disso. Significa que rodar a mesma coisa duas vezes não deveria mudar nada na
+segunda vez, se não houver nada de fato pra mudar. No começo, toda task reportava
+`changed`, mesmo com o cluster já no estado certo — porque o módulo `command`
+puro roda cego e não sabe diferenciar. Depois que adicionei o `changed_when`, as
+tasks passaram a falar a verdade: o `kubectl apply` só diz `changed` quando
+realmente mudou algo, e a checagem de rollout nunca conta como mudança. Dá pra
+ver nas duas rodadas abaixo — o recap cai de `changed=4` para `changed=2`:
 
 ![Playbook Ansible: changed=4 → changed=2 depois do changed_when](./screenshots/ansible-idempotency.png)
 

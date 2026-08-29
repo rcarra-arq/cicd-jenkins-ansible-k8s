@@ -10,7 +10,7 @@
 
 Laboratório de CI/CD **com custo zero de nuvem**, rodando local numa VM Linux:
 uma aplicação containerizada é publicada num cluster **Kubernetes** (kind),
-provisionada com **Ansible** e orquestrada por um pipeline **Jenkins** — builda a
+provisionada com **Ansible** e orquestrada por um pipeline **Jenkins**, builda a
 imagem, roda o playbook e faz o deploy no cluster. Reaproveita a app e o stack
 Prometheus/Grafana do
 [cloud-monitoring-lab](https://github.com/rcarra-arq/cloud-monitoring-lab).
@@ -24,16 +24,17 @@ pipeline. Reuses the app and the Prometheus/Grafana stack from
 
 ## Português
 
-> **Foco de portfólio:** as peças que faltavam num kit DevOps — **gestão de
+> **Foco de portfólio:** as peças que faltavam num kit DevOps: **gestão de
 > configuração (Ansible)**, **CI/CD self-hosted (Jenkins)** e **orquestração de
-> containers (Kubernetes)** — na prática, com **documentações de troubleshooting
+> containers (Kubernetes)**, na prática, com **documentações de troubleshooting
 > reais**.
 
 ## O porquê
 
 Uma vaga de júnior pedia Jenkins, Ansible e Kubernetes, e eu quis entender o que
-eram e como funcionavam. Fiquei surpresa com o quanto uma vaga júnior pode pedir
-— então fui aprender na prática. O que eu mais gostei foi entender o Kubernetes:
+eram e como funcionavam. Fiquei surpresa com o quanto uma vaga júnior pode
+pedir, então fui aprender na prática. O que eu mais gostei foi entender o
+Kubernetes:
 derrubar um pod e ver outro nascer no lugar, e perceber como isso contribui pra
 alta disponibilidade.
 
@@ -42,7 +43,7 @@ alta disponibilidade.
 ```
 Push no GitHub
    ↓
-GitHub Actions (CI rápido — builda, testa, valida manifests)
+GitHub Actions (CI rápido: builda, testa, valida manifests)
    ↓
 Jenkins (CD completo)
    ↓
@@ -61,25 +62,25 @@ roda o pipeline de entrega contínua que de fato faz o deploy no Kubernetes.
 
 | Componente | Papel |
 |---|---|
-| kind (Kubernetes em Docker) | Cluster Kubernetes real rodando como containers Docker — leve, rápido, custo zero |
+| kind (Kubernetes em Docker) | Cluster Kubernetes real rodando como containers Docker: leve, rápido, custo zero |
 | Deployment + ReplicaSet | Mantém N pods idênticos vivos; self-healing e rolling updates |
 | Service (ClusterIP) | IP virtual estável + DNS na frente dos pods efêmeros |
 | Docker | Builda a imagem da app (nginx + página custom) |
 | Ansible | Provisiona e aplica os manifests de forma declarativa |
-| Jenkins | Pipeline CI/CD self-hosted — padrão Docker-outside-of-Docker |
-| Prometheus | Coleta de métricas — roda dentro do cluster como pod |
-| Grafana | Visualização em dashboards — lê do Prometheus |
+| Jenkins | Pipeline CI/CD self-hosted: padrão Docker-outside-of-Docker |
+| Prometheus | Coleta de métricas: roda dentro do cluster como pod |
+| Grafana | Visualização em dashboards: lê do Prometheus |
 | GitHub Actions | CI rápido: build, smoke test, validação de manifests |
 
 ## Status / roadmap
 
 | Etapa | O quê | Status |
 |---|---|---|
-| 1 | **Kubernetes** — cluster kind, Deployment, Service, self-healing | ✅ feito |
-| 2 | **App no cluster** — imagem própria, `kind load`, rolling update | ✅ feito |
-| 3 | **Ansible** — playbook que builda, carrega e aplica os manifests | ✅ feito |
-| 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ feito |
-| 5 | **Monitoramento** — Prometheus + Grafana rodando dentro do cluster | ✅ feito |
+| 1 | **Kubernetes**: cluster kind, Deployment, Service, self-healing | ✅ feito |
+| 2 | **App no cluster**: imagem própria, `kind load`, rolling update | ✅ feito |
+| 3 | **Ansible**: playbook que builda, carrega e aplica os manifests | ✅ feito |
+| 4 | **Jenkins**: pipeline: build → load → deploy (via Ansible) | ✅ feito |
+| 5 | **Monitoramento**: Prometheus + Grafana rodando dentro do cluster | ✅ feito |
 
 ## Como executar
 
@@ -107,28 +108,28 @@ Derruba tudo com `kind delete cluster --name cicd-lab`.
 
 ![App rodando no Kubernetes, versão v2](./screenshots/app-v2-running.png)
 
-## Ansible — automatizando o deploy
+## Ansible: automatizando o deploy
 
 Os quatro passos manuais (build → `kind load` → `kubectl apply` → rollout) são
-automatizados por um playbook ([ansible/deploy.yml](ansible/deploy.yml)) — um
+automatizados por um playbook ([ansible/deploy.yml](ansible/deploy.yml)), um
 comando substitui quatro:
 
 ```bash
 cd ansible && ansible-playbook deploy.yml
 ```
 
-Também aprendi **idempotência** aqui — uma palavra que eu não conhecia antes
+Também aprendi **idempotência** aqui, uma palavra que eu não conhecia antes
 disso. Significa que rodar a mesma coisa duas vezes não deveria mudar nada na
 segunda vez, se não houver nada de fato pra mudar. No começo, toda task reportava
-`changed`, mesmo com o cluster já no estado certo — porque o módulo `command`
+`changed`, mesmo com o cluster já no estado certo, porque o módulo `command`
 puro roda cego e não sabe diferenciar. Depois que adicionei o `changed_when`, as
 tasks passaram a falar a verdade: o `kubectl apply` só diz `changed` quando
 realmente mudou algo, e a checagem de rollout nunca conta como mudança. Dá pra
-ver nas duas rodadas abaixo — o recap cai de `changed=4` para `changed=2`:
+ver nas duas rodadas abaixo, o recap cai de `changed=4` para `changed=2`:
 
 ![Playbook Ansible: changed=4 → changed=2 depois do changed_when](./screenshots/ansible-idempotency.png)
 
-## Jenkins — o pipeline CI/CD
+## Jenkins: o pipeline CI/CD
 
 O Jenkins roda como container na mesma VM, usando o padrão
 **Docker-outside-of-Docker**: monta o socket do Docker do host
@@ -142,15 +143,15 @@ O pipeline tem quatro estágios:
 Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
 ```
 
-1. **Checkout** — clona o repo do GitHub
-2. **Build** — `docker build` da imagem da app
-3. **Load** — `kind load` pra colocar a imagem no cluster
-4. **Deploy** — roda `ansible-playbook deploy.yml` (aplica os manifests e espera
+1. **Checkout**: clona o repo do GitHub
+2. **Build**: `docker build` da imagem da app
+3. **Load**: `kind load` pra colocar a imagem no cluster
+4. **Deploy**: roda `ansible-playbook deploy.yml` (aplica os manifests e espera
    o rollout)
 
-![Pipeline Jenkins — todos os estágios verdes](./screenshots/jenkins-pipeline-green.png)
+![Pipeline Jenkins, todos os estágios verdes](./screenshots/jenkins-pipeline-green.png)
 
-## Monitoramento — Prometheus + Grafana no cluster
+## Monitoramento: Prometheus + Grafana no cluster
 
 Prometheus e Grafana rodam como pods **dentro do cluster kind**, não como
 containers Docker avulsos. O Prometheus coleta métricas dele mesmo e do endpoint
@@ -167,11 +168,11 @@ kubectl port-forward --address 0.0.0.0 service/grafana 3000:3000
 ## Casos de troubleshooting
 
 Problemas reais enfrentados na construção, cada um terminando na causa raiz e na
-lição — veja [docs/troubleshooting.md](docs/troubleshooting.md): o **conflito de
+lição, veja [docs/troubleshooting.md](docs/troubleshooting.md): o **conflito de
 porta** do Jenkins com a app, e o **403 do nginx no Kubernetes** (permissão do
 host vazando pra imagem, a armadilha do BuildKit, e a tag única por build).
 
-*Projeto de estudo e portfólio em engenharia de nuvem — CI/CD, gestão de
+*Projeto de estudo e portfólio em engenharia de nuvem, CI/CD, gestão de
 configuração e orquestração de containers, construído na prática.*
 
 ---
@@ -180,16 +181,16 @@ configuração e orquestração de containers, construído na prática.*
 
 🇧🇷 [Versão em português ↑](#cicd-pipeline-with-jenkins-ansible--kubernetes)
 
-> **Portfolio focus:** the missing pieces of a DevOps toolkit — **config
+> **Portfolio focus:** the missing pieces of a DevOps toolkit: **config
 > management (Ansible)**, **self-hosted CI/CD (Jenkins)** and **container
-> orchestration (Kubernetes)** — built hands-on, with **documented,
+> orchestration (Kubernetes)**, built hands-on, with **documented,
 > real-world troubleshooting write-ups**.
 
 ## My reasons
 
 A junior job posting asked for Jenkins, Ansible, and Kubernetes, and I wanted to
 understand what they were and how they worked. I was surprised by how much a
-junior role can ask for — so I went and learned it hands-on. What I enjoyed most
+junior role can ask for, so I went and learned it hands-on. What I enjoyed most
 was understanding Kubernetes: killing a pod and watching another one be born to
 replace it, and seeing how that contributes to high availability.
 
@@ -198,7 +199,7 @@ replace it, and seeing how that contributes to high availability.
 ```
 Push to GitHub
    ↓
-GitHub Actions (fast CI — build, test, validate manifests)
+GitHub Actions (fast CI: build, test, validate manifests)
    ↓
 Jenkins (full CD)
    ↓
@@ -218,25 +219,25 @@ deploys to Kubernetes.
 
 | Component | Role |
 |---|---|
-| kind (Kubernetes in Docker) | Runs a real Kubernetes cluster as Docker containers — light, fast, zero cloud cost |
+| kind (Kubernetes in Docker) | Runs a real Kubernetes cluster as Docker containers: light, fast, zero cloud cost |
 | Deployment + ReplicaSet | Keeps N identical pods alive; self-heals and does rolling updates |
 | Service (ClusterIP) | Stable virtual IP + DNS name in front of the ephemeral pods |
 | Docker | Builds the app image (nginx + custom page) |
 | Ansible | Provisions and applies the manifests declaratively |
-| Jenkins | Self-hosted CI/CD pipeline — Docker-outside-of-Docker pattern |
-| Prometheus | Metrics collection — runs inside the cluster as a pod |
-| Grafana | Dashboard visualization — reads from Prometheus |
+| Jenkins | Self-hosted CI/CD pipeline: Docker-outside-of-Docker pattern |
+| Prometheus | Metrics collection: runs inside the cluster as a pod |
+| Grafana | Dashboard visualization: reads from Prometheus |
 | GitHub Actions | Fast CI: build, smoke test, manifest validation |
 
 ## Status / roadmap
 
 | Stage | What | Status |
 |---|---|---|
-| 1 | **Kubernetes** — kind cluster, Deployment, Service, self-healing | ✅ done |
-| 2 | **App on the cluster** — custom image, `kind load`, rolling update | ✅ done |
-| 3 | **Ansible** — playbook that builds, loads and applies the manifests | ✅ done |
-| 4 | **Jenkins** — pipeline: build → load → deploy (via Ansible) | ✅ done |
-| 5 | **Monitoring** — Prometheus + Grafana running inside the cluster | ✅ done |
+| 1 | **Kubernetes**: kind cluster, Deployment, Service, self-healing | ✅ done |
+| 2 | **App on the cluster**: custom image, `kind load`, rolling update | ✅ done |
+| 3 | **Ansible**: playbook that builds, loads and applies the manifests | ✅ done |
+| 4 | **Jenkins**: pipeline: build → load → deploy (via Ansible) | ✅ done |
+| 5 | **Monitoring**: Prometheus + Grafana running inside the cluster | ✅ done |
 
 ## Quick start
 
@@ -264,28 +265,28 @@ Tear down the cluster with `kind delete cluster --name cicd-lab`.
 
 ![App running on Kubernetes, version v2](./screenshots/app-v2-running.png)
 
-## Ansible — automating the deploy
+## Ansible: automating the deploy
 
 The four manual steps above (build → `kind load` → `kubectl apply` → rollout) are
-automated by a playbook ([ansible/deploy.yml](ansible/deploy.yml)) — one command
+automated by a playbook ([ansible/deploy.yml](ansible/deploy.yml)), one command
 replaces four:
 
 ```bash
 cd ansible && ansible-playbook deploy.yml
 ```
 
-I also learned **idempotency** here — a word I didn't know before this. It means
+I also learned **idempotency** here, a word I didn't know before this. It means
 running the same thing twice shouldn't change anything the second time, if
 nothing actually needs changing. At first every task reported `changed`, even
-when the cluster was already in the right state — because the plain `command`
+when the cluster was already in the right state, because the plain `command`
 module just runs blindly and can't tell. After I added `changed_when`, the tasks
 started telling the truth: `kubectl apply` only says `changed` when it really
 changed something, and the rollout check never counts as a change. You can see it
-in the two runs below — the recap drops from `changed=4` to `changed=2`:
+in the two runs below, the recap drops from `changed=4` to `changed=2`:
 
 ![Ansible playbook: changed=4 → changed=2 after adding changed_when](./screenshots/ansible-idempotency.png)
 
-## Jenkins — the CI/CD pipeline
+## Jenkins: the CI/CD pipeline
 
 Jenkins runs as a container on the same VM, using the **Docker-outside-of-Docker**
 pattern: it mounts the host's Docker socket (`/var/run/docker.sock`) instead of
@@ -298,15 +299,15 @@ The pipeline has four stages:
 Checkout ──▶ Build ──▶ Load into Kind ──▶ Deploy (Ansible)
 ```
 
-1. **Checkout** — clones the repo from GitHub
-2. **Build** — `docker build` of the app image
-3. **Load** — `kind load` to push the image into the cluster
-4. **Deploy** — runs `ansible-playbook deploy.yml` (which applies the manifests
+1. **Checkout**: clones the repo from GitHub
+2. **Build**: `docker build` of the app image
+3. **Load**: `kind load` to push the image into the cluster
+4. **Deploy**: runs `ansible-playbook deploy.yml` (which applies the manifests
    and waits for the rollout)
 
-![Jenkins pipeline — all stages green](./screenshots/jenkins-pipeline-green.png)
+![Jenkins pipeline, all stages green](./screenshots/jenkins-pipeline-green.png)
 
-## Monitoring — Prometheus + Grafana on the cluster
+## Monitoring: Prometheus + Grafana on the cluster
 
 Prometheus and Grafana run as pods **inside the kind cluster**, not as standalone
 Docker containers. Prometheus scrapes its own metrics and the web app's endpoint;
@@ -322,13 +323,13 @@ kubectl port-forward --address 0.0.0.0 service/grafana 3000:3000
 
 ## Troubleshooting write-ups
 
-Real problems hit while building this, each ending in root cause and lesson —
+Real problems hit while building this, each ending in root cause and lesson,
 see [docs/troubleshooting.md](docs/troubleshooting.md):
 
-- **Port conflict** — Jenkins' default `8080` collides with the monitored app.
-- **nginx 403 inside Kubernetes** — host file permissions (from a VirtualBox
+- **Port conflict**: Jenkins' default `8080` collides with the monitored app.
+- **nginx 403 inside Kubernetes**: host file permissions (from a VirtualBox
   shared folder) leaked into the image; the `--chmod` / BuildKit trap; and why a
   unique image tag per build makes deploys deterministic.
 
-*Cloud engineering study and portfolio project — CI/CD, config management and
+*Cloud engineering study and portfolio project, CI/CD, config management and
 container orchestration, built hands-on.*
